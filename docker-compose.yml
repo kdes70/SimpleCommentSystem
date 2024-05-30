@@ -1,0 +1,46 @@
+services:
+
+  app:
+    build:
+      context: ./docker/local/php8.2
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    tty: true
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    volumes:
+      - ./app/:/var/www/html
+    ports:
+      - 8000:9000
+    depends_on:
+      - mysql
+    environment:
+      DB_HOST: mysql
+
+  mysql:
+    env_file:
+      - .env
+    build:
+      context: ./docker/local/mysql
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_DATABASE: '${DB_DATABASE}'
+      MYSQL_USER: '${DB_USERNAME}'
+      MYSQL_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping '-p${DB_PASSWORD}'" ]
+      retries: 3
+      timeout: 5s
+
+#Volumes
+volumes:
+  mysql_data:
+    driver: local
