@@ -29,12 +29,11 @@ endif
 install: down x-copy-env ## build and install application
 	make build
 	make up
-	#make front-init
 	make stop
 
-init: up x-composer-install x-database ## start application, refresh configs and helpers
+init: up x-front-init ## start application, refresh configs and helpers
 
-build:
+build: ## build application containers
 	$(COMPOSE_COMMAND_BIN) build --no-cache
 
 up: ## start application containers
@@ -46,26 +45,22 @@ stop: ## stop application containers
 down: ## stop and clear application containers
 	$(COMPOSE_COMMAND_BIN) down -v --remove-orphans
 
-#front-init:
-#	$(DOCKER_BIN) run --rm -v $(API_DIR)/:/var/www/html -w /var/www/html node:18 npm install
-#
-#front-build: ## build assets to deploy-ready state
-#	$(DOCKER_BIN) run --rm -v $(API_DIR)/:/var/www/html -w /var/www/html node:18 npm run build:css
-
 # Utils: SHELLS
 shell: up ## start shell into application container
 	$(docker_compose_bin) exec $(APP_CONTAINER_NAME) bash
 
-# DATABASE
-x-database: ## recreating database with all migrations and seeds
-	sleep 5; # waiting for mysql initialization (0_o)'
-
 # HELPERS
-x-copy-env:
+x-copy-env: ## copy .env file to application containers
 	if [ ! -f ./.env ]; then cp ./.env.example ./.env ; fi
 
-x-composer-install:
-	$(COMPOSE_COMMAND_BIN) exec -w /var/www/html/api $(APP_CONTAINER_NAME)  composer install
+x-composer-install: ## installing dependencies via Composer
+	$(COMPOSE_COMMAND_BIN) exec $(APP_CONTAINER_NAME) composer install
+	## Очистка кэша
+	$(DOCKER_BIN) run --rm -v ./:/var/www/html -w /var/www/html rm -rf /var/www/html/vendor/composer/cache
 
-x-composer-autoload:
-	$(COMPOSE_COMMAND_BIN) exec $(APP_CONTAINER_NAME) composer dump-autoload
+x-front-init: ## installing frontend dependencies
+	$(COMPOSE_COMMAND_BIN) exec $(APP_CONTAINER_NAME) npm install
+	#$(DOCKER_BIN) run --rm -v $(API_DIR)/:/var/www/html -w /var/www/html node:18 npm install
+
+x-front-build: ## build assets to deploy-ready state
+#	$(DOCKER_BIN) run --rm -v $(API_DIR)/:/var/www/html -w /var/www/html node:18 npm run build:css

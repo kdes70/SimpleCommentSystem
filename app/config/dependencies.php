@@ -1,54 +1,58 @@
 <?php
 
-use App\controllers\CommentController;
-use App\Repositories\CommentRepositoryInterface;
-use App\Repositories\Doctrine\CommentRepository as DoctrineCommentRepository;
-use App\Repositories\Native\CommentRepository as NativeCommentRepository;
-use App\Services\CommentService;
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\ORMSetup;
+use DI\ContainerBuilder;
+use FastRoute\RouteCollector;
+use Slim\Views\PhpRenderer;
+use Valitron\Validator;
 
-$isDevMode = true; // Или устанавливайте true для режима разработки, false для production
+$containerBuilder = new ContainerBuilder();
 
-$proxyDir = null;
-if ($isDevMode) {
-    $proxyDir = __DIR__ . '/../var/cache/proxy';
-}
-
-$paths = [__DIR__ . '/../src/models'];
-$config = ORMSetup::createAnnotationMetadataConfiguration($paths, $isDevMode, $proxyDir);
-
-$connection = [
-    'driver' => 'pdo_mysql',
-    'host' => getenv('DB_HOST') ?: 'mysql', // Используем переменную окружения DB_HOST или значение по умолчанию 'mysql'
-    'dbname' => 'my_db',
-    'user' => 'root',
-    'password' => 'secret', // Пароль для MySQL, определенный в docker-compose.yml
-];
-
-$entityManager = EntityManager::create($connection, $config);
-
-return [
-    CommentService::class => \DI\create(CommentService::class)
-        ->constructor(\DI\get(CommentRepositoryInterface::class)),
-
-    CommentRepositoryInterface::class => \DI\get(NativeCommentRepository::class),
-
-    NativeCommentRepository::class => \DI\create(NativeCommentRepository::class)
-        ->constructor(\DI\get(PDO::class)),
-
-    DoctrineCommentRepository::class => \DI\create(DoctrineCommentRepository::class)
-        ->constructor(\DI\get(EntityManager::class)),
-
-    PDO::class => \DI\create()
+$containerBuilder->addDefinitions([
+    RouteCollector::class => fn() => new RouteCollector(
+        new \FastRoute\cachedDispatcher(function (\FastRoute\RouteCollector $r) {
+            $r->addRoute('GET', '/', ['App\Controllers\BlogController', 'index']);
+            $r->addRoute('POST', '/comments', ['App\Controllers\CommentController', 'store']);
+        }),
+        []
+    ),
+    PhpRenderer::class => fn(ContainerInterface $c) => new PhpRenderer(__DIR__ . '/../views'),
+    Validator::class => fn() => new Validator([
+        'name' => 'required|string',
+        'email' => 'required|email',
+        'title' => 'required|string',
+        'text' => 'required|string',
+    ]),
+    RequestForm::class => fn(ContainerInterface $c) => $c->get(Validator::class),
+    LoggerInterface::class => \DI\create(Logger::class)
+        ->constructor('app', [
+            new StreamHandler(__DIR__ . '/../storage/logs/app.log', Logger::DEBUG)
+        ]),
+    Handler::class => \DI\create(Handler::class)
         ->constructor(
-            'mysql:host=mysql;dbname=my_db',
-            'root',
-            'secret'
+            \DI\get(LoggerInterface::class),
+            \DI\get(Environment::class)
         ),
 
-    EntityManager::class => \DI\get($entityManager),
 
+    ///
+    CommentRepositoryInterface::class => \DI\create(CommentDoctrineRepository::class)
+        ->constructor(DriverManager::getConnection($databaseConfig)),
+    CommentService::class => \DI\create(CommentService::class)
+        ->constructor(\DI\get(CommentDoctrineRepository::class)),
     CommentController::class => \DI\create(CommentController::class)
         ->constructor(\DI\get(CommentService::class)),
-];
+    Environment::class => function () {
+        $loader = new FilesystemLoader(__DIR__ . '/../views');
+        return new Environment($loader);
+    },
+    Dispatcher::class => fn() => (new Router())->getDispatcher(),
+    LoggerInterface::class => \DI\create(Logger::class)
+        ->constructor('app', [
+            new StreamHandler(__DIR__ . '/../storage/logs/app.log', Logger::DEBUG)
+        ]),
+    Handler::class => \DI\create(Handler::class)
+        ->constructor(
+            \DI\get(LoggerInterface::class),
+            \DI\get(Environment::class)
+        ),
+]);

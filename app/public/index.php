@@ -1,48 +1,49 @@
 <?php
 
+use App\Core\Container;
+use App\Core\Request\Request;
+use App\Core\Router;
+use App\Exceptions\Handler;
 use FastRoute\Dispatcher;
-use DI\ContainerBuilder;
+use Twig\Environment;
+use Twig\Loader\FilesystemLoader;
 
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../config/routes.php';
-require_once __DIR__ . '/../config/dependencies.php';
 
-$containerBuilder = new ContainerBuilder();
-$containerBuilder->addDefinitions($dependencies);
-$container = $containerBuilder->build();
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
+$dotenv->load();
 
-$httpMethod = $_SERVER['REQUEST_METHOD'];
-$uri = $_SERVER['REQUEST_URI'];
+$container = Container::getInstance();
+$router = $container->get(Router::class);
+$twig = $container->get(Environment::class);
 
-if (false !== $pos = strpos($uri, '?')) {
-    $uri = substr($uri, 0, $pos);
+$request = new Request();
+
+$dispatcher = $container->get('FastRoute\RouteCollector')->getData();
+$routeInfo = $dispatcher->dispatch($request->getMethod(), $request->getUri());
+
+try {
+    switch ($routeInfo[0]) {
+        case Dispatcher::NOT_FOUND:
+            $response = $twig->render('errors/404.html.twig');
+            break;
+        case Dispatcher::METHOD_NOT_ALLOWED:
+            $allowedMethods = $routeInfo[1];
+            $response = 'Метод не разрешен';
+            break;
+        case Dispatcher::FOUND:
+            $handler = $routeInfo[1];
+            $vars = $routeInfo[2];
+
+            [$controller, $method] = explode('@', $handler);
+            $controller = $container->get($controller);
+            $response = $controller->$method($vars, $request);
+            break;
+    }
+} catch (Exception $e) {
+    $handler = $container->get(Handler::class);
+    $handler->report($e);
+    $response = $handler->render($e);
 }
-$uri = rawurldecode($uri);
 
-$routeInfo = $dispatcher->dispatch($httpMethod, $uri);
-
-header('Content-Type: application/json');
-
-switch ($routeInfo[0]) {
-    case Dispatcher::NOT_FOUND:
-        // ... 404 Not Found
-        break;
-    case Dispatcher::METHOD_NOT_ALLOWED:
-        $allowedMethods = $routeInfo[1];
-        // ... 405 Method Not Allowed
-        break;
-    case Dispatcher::FOUND:
-        $handler = $routeInfo[1];
-        $vars = $routeInfo[2];
-
-        [$controller, $method] = $handler;
-        $controllerInstance = $container->get($controller);
-
-        if ($httpMethod === 'GET') {
-            echo $controllerInstance->$method();
-        } else {
-            $data = json_decode(file_get_contents('php://input'), true);
-            echo $controllerInstance->$method($data);
-        }
-        break;
-}
+echo $response;

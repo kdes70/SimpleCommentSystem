@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comment System</title>
+    <link rel="stylesheet" href="/css/app.css">
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js"></script>
+</head>
+<body class="h-full flex flex-col">
+<header class="bg-white shadow">
+    <div class="container mx-auto py-4 px-6 flex justify-between items-center">
+        <img src="/logo.png" alt="Company Logo" class="h-10">
+        <h1 class="text-2xl font-bold">Comment System</h1>
+    </div>
+</header>
+
+<main class="container mx-auto flex-grow p-6">
+    <article class="mb-8">
+        <p class="text-gray-700">Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
+        <p class="text-gray-700">Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...</p>
+    </article>
+
+    {{ include('form.twig') }}
+
+    <div id="comments-container" class="mt-8">
+        {% for comment in comments %}
+            {{ include('comment.twig', {'comment': comment}) }}
+        {% endfor %}
+    </div>
+</main>
+
+<footer class="bg-gray-800 text-white py-4">
+    <div class="container mx-auto px-6 flex justify-center space-x-6">
+        <a href="#"><i class="fab fa-facebook-f"></i></a>
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+    </div>
+</footer>
+
+<script src="/js/app.js"></script>
+</body>
+</html>
