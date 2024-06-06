@@ -47,7 +47,7 @@ down: ## stop and clear application containers
 
 # Utils: SHELLS
 shell: up ## start shell into application container
-	$(docker_compose_bin) exec $(APP_CONTAINER_NAME) bash
+	$(COMPOSE_COMMAND_BIN) exec $(APP_CONTAINER_NAME) bash
 
 # HELPERS
 x-copy-env: ## copy .env file to application containers

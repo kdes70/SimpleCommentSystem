@@ -2,6 +2,7 @@
 
 namespace App\Core;
 
+use Exception;
 use PDO;
 use PDOException;
 
@@ -11,6 +12,9 @@ class Database
 
     public function __construct(private readonly array $config) {}
 
+    /**
+     * @throws Exception
+     */
     public function getConnection(): PDO
     {
         if ($this->connection === null) {

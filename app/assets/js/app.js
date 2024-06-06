@@ -1,10 +1,10 @@
-import { validateCommentForm } from './validation';
+import {validateCommentForm} from './validation';
 
 document.addEventListener('DOMContentLoaded', () => {
     const commentForm = document.getElementById('comment-form');
     const commentsContainer = document.getElementById('comments-container');
 
-    commentForm.addEventListener('submit', async (event) => {
+    commentForm.addEventListener('submit', async(event) => {
         event.preventDefault();
 
         if (!validateCommentForm(commentForm)) {
@@ -17,12 +17,12 @@ document.addEventListener('DOMContentLoaded', () => {
             body: formData,
         });
 
-        if (response.ok) {
-            const commentHtml = await response.text();
-            commentsContainer.insertAdjacentHTML('beforeend', commentHtml);
-            commentForm.reset();
-        } else {
-            alert('Ошибка при добавлении комментария');
-        }
+    if (response.ok) {
+        const commentHtml = await response.text();
+        commentsContainer.insertAdjacentHTML('beforeend', commentHtml);
+        commentForm.reset();
+    } else {
+        alert('Ошибка при добавлении комментария');
+    }
     });
 });

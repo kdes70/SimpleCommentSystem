@@ -1,2 +1,15 @@
-.idea
+/.fleet
+/.idea
+/.vscode
 .env
+/app/public/dist/
+/.phpunit.cache
+/node_modules
+/storage/*.key
+/storage/**/*.log
+/vendor
+auth.json
+npm-debug.log
+.php_cs.cache
+.php-cs-fixer.cache
+/phpstan-baseline.neon

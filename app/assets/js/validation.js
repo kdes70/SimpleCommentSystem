@@ -1,4 +1,5 @@
-export function validateCommentForm(form) {
+export function validateCommentForm(form)
+{
     const nameInput = form.querySelector('input[name="name"]');
     const emailInput = form.querySelector('input[name="email"]');
     const titleInput = form.querySelector('input[name="title"]');

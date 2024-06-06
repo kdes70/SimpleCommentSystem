@@ -3,26 +3,25 @@
 namespace App\Controllers;
 
 use App\Services\CommentService;
-use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Message\ServerRequestInterface as Request;
-use Slim\Views\PhpRenderer;
+use DI\DependencyException;
+use DI\NotFoundException;
 
-class HomeController
+class HomeController  extends Controller
 {
-    public function __construct(private PhpRenderer $renderer, private CommentService $commentService)
+    public function __construct(private readonly CommentService $commentService)
     {
     }
 
-    public function index(Request $request, Response $response, $args)
+    /**
+     * @throws DependencyException
+     * @throws NotFoundException
+     */
+    public function index(): mixed
     {
-        $comments = $this->commentService->getAll();
+        $comments = $this->commentService->getAllComments();
 
-        $response->getBody()->write(
-            $this->renderer->render('blog.php', [
-                'comments' => $comments,
-            ])
-        );
-
-        return $response;
+       return $this->render('blog.php', [
+            'comments' => $comments,
+        ]);
     }
 }

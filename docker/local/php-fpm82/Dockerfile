@@ -1,6 +1,8 @@
 FROM php:8.2-fpm
 
 RUN apt-get update && apt-get install -y \
+    nodejs \
+    npm \
     libzip-dev \
     zip \
     && docker-php-ext-install zip
@@ -13,7 +15,7 @@ WORKDIR /var/www/html
 
 RUN composer install --no-interaction --no-scripts --no-progress --prefer-dist
 
-COPY ./docker/local/php:82-apache/check_and_create_dir.sh /usr/local/bin/check_and_create_dir.sh
+COPY ./docker/local/php-fpm82/check_and_create_dir.sh /usr/local/bin/check_and_create_dir.sh
 RUN chmod +x /usr/local/bin/check_and_create_dir.sh  \
     && /usr/local/bin/check_and_create_dir.sh \
     && chown -R www-data:www-data /var/www/html/storage

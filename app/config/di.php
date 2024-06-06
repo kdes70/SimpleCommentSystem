@@ -1,41 +1,52 @@
 <?php
 
-use App\Core\Database;
-use App\Repositories\CommentDoctrineRepository;
-use App\Repositories\CommentRepository;
 use App\Controllers\CommentController;
+use App\Core\ControllerContract;
+use App\Core\ControllerResolver;
+use App\Core\Database;
+use App\Core\Router;
+use App\Core\Validation\Validation;
+use App\Core\Validation\ValidationInterface;
+use App\Core\View\TemplateEngineInterface;
+use App\Core\View\TwigEngine;
+use App\Core\View\ViewFactory;
+use App\Exceptions\Handler;
+use App\Repositories\CommentDoctrineRepository;
 use App\Repositories\CommentRepositoryInterface;
+use App\Services\CommentService;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use Slim\Routing\Dispatcher;
+
+use function DI\get;
 
 return [
-    Database::class => fn(ContainerInterface $c) => new Database(require __DIR__ . '/database.php'),
-    Router::class => \DI\create(Router::class),
     LoggerInterface::class => \DI\create(Logger::class)
         ->constructor('app', [
-            new StreamHandler(__DIR__ . '/../storage/logs/app.log', Logger::DEBUG)
+            new StreamHandler(__DIR__ . '/../storage/logs/app.log', \Monolog\Level::Debug)
         ]),
     Handler::class => \DI\create(Handler::class)
         ->constructor(
-            \DI\get(LoggerInterface::class),
-            \DI\get(Environment::class)
+            get(LoggerInterface::class),
+            get(\Twig\Environment::class)
         ),
-
+    ControllerContract::class => \DI\create(CommentController::class)
+        ->constructor(get(CommentService::class)),
+    CommentService::class => \DI\create()
+        ->constructor(
+            get(CommentRepositoryInterface::class),
+        ),
     CommentRepositoryInterface::class => \DI\create(CommentDoctrineRepository::class)
         ->constructor(function (ContainerInterface $c) {
             return new CommentDoctrineRepository($c->get(Database::class));
         }),
-    CommentDoctrineRepository::class => fn(ContainerInterface $c) => new EntityManagerInterface(
-        $c->get(Database::class)
-    ),
 
-    CommentService::class => \DI\create(CommentService::class)
-        ->constructor(\DI\get(CommentDoctrineRepository::class)),
-    Environment::class => function () {
-        $loader = new FilesystemLoader(__DIR__ . '/../views');
-        return new Environment($loader);
-    },
+    ValidationInterface::class => \DI\create(Validation::class),
+    'controllerResolverFactory' => fn(\DI\Container $container) => new ControllerResolver($container),
+    Router::class => \DI\create(Router::class)->constructor(get('controllerResolverFactory')),
+    TemplateEngineInterface::class => fn() => new TwigEngine(__DIR__ . '/views'),
+    ViewFactory::class => \DI\create(ViewFactory::class),
     Dispatcher::class => fn(ContainerInterface $c) => ($c->get(Router::class)),
-    CommentRepository::class => fn (ContainerInterface $c) => new CommentRepository($c->get(Database::class),
-    CommentController::class => fn(ContainerInterface $c) => new CommentController($c->get(CommentService::class))
 ];

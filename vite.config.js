@@ -1,14 +1,21 @@
 import {defineConfig} from 'vite';
 
 export default defineConfig({
-    root: 'app/assets',
+    root: './app/public',
     build: {
-        outDir: './app/public/build',
+        outDir: './dist',
         emptyOutDir: true,
-        // rollupOptions: {
-        //     input: {
-        //         main: './app/app.js'
-        //     }
-        // }
+        rollupOptions: {
+            input: [
+                './app/assets/js/app.js',
+                './app/assets/css/styles.css'
+            ]
+        },
+        assetsDir: "",
+        sourcemap: true,
+        output: {
+            manualChunks: undefined,
+        },
+        cssCodeSplit: false,
     }
 });
