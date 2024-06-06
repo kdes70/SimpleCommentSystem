@@ -42,10 +42,12 @@ class Container
     public static function buildContainer(): \DI\Container
     {
         $builder = new ContainerBuilder();
-        $builder->addDefinitions(__DIR__ . '/../config/di.php');
+        $builder->addDefinitions(__DIR__ . '/../../config/di.php');
         $builder->addDefinitions([
             \DI\Container::class => \DI\create(\DI\Container::class),
-            Database::class => fn(ContainerInterface $c) => new Database(require __DIR__ . '/database.php'),
+            Database::class => fn(ContainerInterface $c) => new Database(
+                require __DIR__ . '/../../config/database.php'
+            ),
         ]);
         return $builder->build();
     }

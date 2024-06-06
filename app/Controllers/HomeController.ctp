@@ -20,7 +20,7 @@ class HomeController  extends Controller
     {
         $comments = $this->commentService->getAllComments();
 
-       return $this->render('blog.php', [
+       return $this->render('page.twig', [
             'comments' => $comments,
         ]);
     }

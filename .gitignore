@@ -2,7 +2,7 @@
 /.idea
 /.vscode
 .env
-/app/public/dist/
+/public/dist/
 /.phpunit.cache
 /node_modules
 /storage/*.key

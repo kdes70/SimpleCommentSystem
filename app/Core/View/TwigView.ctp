@@ -8,7 +8,7 @@ use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 use Twig\Loader\FilesystemLoader;
 
-class TwigEngine implements TemplateEngineInterface {
+class TwigView implements TemplateEngineInterface {
     protected Environment $twig;
 
     public function __construct(string $templatesPath) {

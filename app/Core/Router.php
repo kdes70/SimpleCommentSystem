@@ -14,18 +14,14 @@ use function FastRoute\simpleDispatcher;
 class Router
 {
     private Dispatcher $dispatcher;
-    private ControllerResolver $controllerResolver;
 
-    public function __construct(callable $controllerResolverFactory)
+    public function __construct(private readonly ControllerResolver $controllerResolver)
     {
         $this->dispatcher = simpleDispatcher(function (RouteCollector $r) {
             $r->addRoute('GET', '/', [HomeController::class, 'index']);
             $r->addRoute('POST', '/comments', [CommentController::class, 'store']);
             $r->addRoute('GET', '/comments', [CommentController::class, 'index']);
         });
-
-        $container = Container::getInstance();
-        $this->controllerResolver = $controllerResolverFactory($container->get(\DI\Container::class));
     }
 
     public function resolve(): void
