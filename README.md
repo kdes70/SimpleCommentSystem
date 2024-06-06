@@ -10,12 +10,29 @@
 
 ## Installation
 
-1. Clone the repository:: `git clone https://github.com/example/comment-system.git`
-2. Navigate to the project directory: `cd comment-system`
-3. Build and start the Docker containers: `docker-compose up -d`
-4. Install the PHP dependencies: `docker-compose exec app composer install`
-5. Install the JavaScript dependencies: `docker-compose exec app npm install`
-6. Build the JavaScript assets: `docker-compose exec app npm run dev`
+1. Clone the repository::
+
+- `git clone git@github.com:kdes70/SimpleCommentSystem.git`
+
+2. Navigate to the project directory:
+
+- `cd comment-system`
+
+3. Build and start the Docker containers:
+
+- `docker-compose up -d`
+
+4. Install the PHP dependencies:
+
+- `docker-compose exec app composer install`
+
+5. Install the JavaScript dependencies:
+
+- `docker-compose exec app npm install`
+
+6. Build the JavaScript assets:
+
+- `docker-compose exec app npm run dev`
 
 The application should now be accessible at `http://localhost:8000`.
 
@@ -34,47 +51,3 @@ If you make changes to PHP files, you will need to restart the Docker containers
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
-
-[//]: # ()
-
-[//]: # (2. Перейдите в директорию с установленным проектом: `cd comment-system`)
-
-[//]: # ([//]: # &#40;3. Создайте файл `.env` в корневой директории и заполните его необходимыми переменными окружения &#40;например, `DATABASE_PASSWORD`&#41;&#41;)
-
-[//]: # ()
-
-[//]: # (## Использование~~)
-
-[//]: # ()
-
-[//]: # (Для использования приложения перейдите по адресу `http://localhost:8080` в вашем браузере. Приложение автоматически подключится к базе данных, указанной в файле `.env`.)
-
-[//]: # ()
-
-[//]: # (## Обновление)
-
-[//]: # ()
-
-[//]: # (Чтобы обновить приложение, просто извлеките новую версию из репозитория и перезапустите Docker-контейнеры.)
-
-[//]: # ()
-
-[//]: # (```bash)
-
-[//]: # (# Остановите контейнеры)
-
-[//]: # (docker compose down)
-
-[//]: # ()
-
-[//]: # (# Извлеките новую версию)
-
-[//]: # (git pull)
-
-[//]: # ()
-
-[//]: # (# Запустите контейнеры с обновленной версией)
-
-[//]: # (docker compose up -d)
-
-[//]: # (```)
